@@ -63,6 +63,25 @@ actor APIClient {
         try await send(.get, "/api/v1/account")
     }
 
+    // MARK: Recipes
+
+    func fetchRecipes() async throws -> [RecipeSummary] {
+        try await send(.get, "/api/v1/recipes")
+    }
+
+    func fetchRecipe(id: Int) async throws -> Recipe {
+        try await send(.get, "/api/v1/recipes/\(id)")
+    }
+
+    func createRecipe(imageData: Data, filename: String, mimeType: String) async throws -> Recipe {
+        let part = MultipartPart(name: "original_image", filename: filename, mimeType: mimeType, data: imageData)
+        return try await sendMultipart(.post, "/api/v1/recipes", parts: [part])
+    }
+
+    func retryExtraction(recipeID: Int) async throws -> Recipe {
+        try await send(.post, "/api/v1/recipes/\(recipeID)/retry_extraction")
+    }
+
     // MARK: Core request machinery
 
     private enum Method: String {
@@ -115,6 +134,47 @@ actor APIClient {
         let request = try buildRequest(method, path, authorized: authorized)
         let (data, response) = try await transport(request: request)
         try validate(response: response, data: data)
+    }
+
+    private struct MultipartPart {
+        let name: String
+        let filename: String?
+        let mimeType: String?
+        let data: Data
+    }
+
+    private func sendMultipart<Response: Decodable>(
+        _ method: Method,
+        _ path: String,
+        parts: [MultipartPart],
+        authorized: Bool = true
+    ) async throws -> Response {
+        let boundary = "Boundary-\(UUID().uuidString)"
+        var request = try buildRequest(method, path, authorized: authorized)
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.httpBody = encodeMultipart(parts: parts, boundary: boundary)
+        return try await perform(request: request)
+    }
+
+    private func encodeMultipart(parts: [MultipartPart], boundary: String) -> Data {
+        var body = Data()
+        let crlf = "\r\n"
+        for part in parts {
+            body.append(Data("--\(boundary)\(crlf)".utf8))
+            var disposition = "Content-Disposition: form-data; name=\"\(part.name)\""
+            if let filename = part.filename {
+                disposition += "; filename=\"\(filename)\""
+            }
+            body.append(Data("\(disposition)\(crlf)".utf8))
+            if let mimeType = part.mimeType {
+                body.append(Data("Content-Type: \(mimeType)\(crlf)".utf8))
+            }
+            body.append(Data(crlf.utf8))
+            body.append(part.data)
+            body.append(Data(crlf.utf8))
+        }
+        body.append(Data("--\(boundary)--\(crlf)".utf8))
+        return body
     }
 
     private func perform<Response: Decodable>(request: URLRequest) async throws -> Response {
