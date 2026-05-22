@@ -9,17 +9,9 @@ struct RecipeListView: View {
     let user: User
     @Environment(SessionStore.self) private var session
 
-    @State private var recipes: [RecipeSummary] = []
-    @State private var loadState: LoadState = .idle
+    @State private var model = RecipeListViewModel()
     @State private var path: [RecipeRoute] = []
     @State private var showingAdd = false
-
-    enum LoadState: Equatable {
-        case idle
-        case loading
-        case loaded
-        case failed(String)
-    }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -39,15 +31,15 @@ struct RecipeListView: View {
                         }
                     }
                 }
-                .task { await load() }
-                .refreshable { await load() }
+                .task { await model.load() }
+                .refreshable { await model.load() }
                 .navigationDestination(for: RecipeRoute.self) { route in
                     RecipeDetailView(recipeID: route.id, initialTitle: route.title)
                 }
                 .sheet(isPresented: $showingAdd) {
                     AddRecipeView { recipe in
                         path.append(RecipeRoute(id: recipe.id, title: recipe.title))
-                        Task { await load() }
+                        Task { await model.load() }
                     }
                 }
         }
@@ -55,8 +47,8 @@ struct RecipeListView: View {
 
     @ViewBuilder
     private var content: some View {
-        if recipes.isEmpty {
-            switch loadState {
+        if model.recipes.isEmpty {
+            switch model.loadState {
             case .idle, .loading:
                 ProgressView().controlSize(.large)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -66,7 +58,7 @@ struct RecipeListView: View {
                 } description: {
                     Text(message)
                 } actions: {
-                    Button("Try Again") { Task { await load() } }
+                    Button("Try Again") { Task { await model.load() } }
                 }
             case .loaded:
                 ContentUnavailableView {
@@ -76,22 +68,12 @@ struct RecipeListView: View {
                 }
             }
         } else {
-            List(recipes) { recipe in
+            List(model.recipes) { recipe in
                 NavigationLink(value: RecipeRoute(id: recipe.id, title: recipe.title)) {
                     RecipeRow(recipe: recipe)
                 }
             }
             .listStyle(.plain)
-        }
-    }
-
-    private func load() async {
-        if recipes.isEmpty { loadState = .loading }
-        do {
-            recipes = try await APIClient.shared.fetchRecipes()
-            loadState = .loaded
-        } catch {
-            loadState = .failed(error.localizedDescription)
         }
     }
 }

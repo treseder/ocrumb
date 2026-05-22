@@ -1,32 +1,26 @@
 import SwiftUI
 
 struct RecipeDetailView: View {
-    let recipeID: Int
     let initialTitle: String?
 
-    @State private var recipe: Recipe?
-    @State private var loadState: LoadState = .idle
-    @State private var isRetrying = false
-    @State private var retryError: String?
+    @State private var model: RecipeDetailViewModel
 
-    enum LoadState: Equatable {
-        case idle
-        case loading
-        case loaded
-        case failed(String)
+    init(recipeID: Int, initialTitle: String?) {
+        self.initialTitle = initialTitle
+        _model = State(initialValue: RecipeDetailViewModel(recipeID: recipeID))
     }
 
     var body: some View {
         content
-            .navigationTitle(recipe?.title ?? initialTitle ?? "Recipe")
+            .navigationTitle(model.recipe?.title ?? initialTitle ?? "Recipe")
             .navigationBarTitleDisplayMode(.inline)
-            .task { await load() }
-            .refreshable { await load() }
+            .task { await model.load() }
+            .refreshable { await model.load() }
     }
 
     @ViewBuilder
     private var content: some View {
-        if let recipe {
+        if let recipe = model.recipe {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     if let url = recipe.imageURL {
@@ -58,14 +52,14 @@ struct RecipeDetailView: View {
                 }
             }
         } else {
-            switch loadState {
+            switch model.loadState {
             case .failed(let message):
                 ContentUnavailableView {
                     Label("Couldn't load recipe", systemImage: "exclamationmark.triangle")
                 } description: {
                     Text(message)
                 } actions: {
-                    Button("Try Again") { Task { await load() } }
+                    Button("Try Again") { Task { await model.load() } }
                 }
             default:
                 ProgressView().controlSize(.large)
@@ -99,22 +93,22 @@ struct RecipeDetailView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
-            if let retryError {
+            if let retryError = model.retryError {
                 Text(retryError)
                     .font(.footnote)
                     .foregroundStyle(.red)
             }
             Button {
-                Task { await retry() }
+                Task { await model.retry() }
             } label: {
-                if isRetrying {
+                if model.isRetrying {
                     ProgressView()
                 } else {
                     Text("Try Again")
                 }
             }
             .buttonStyle(.borderedProminent)
-            .disabled(isRetrying)
+            .disabled(model.isRetrying)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 16)
@@ -224,50 +218,6 @@ struct RecipeDetailView: View {
                     .foregroundStyle(.secondary)
             }
         }
-    }
-
-    private func load() async {
-        if recipe == nil { loadState = .loading }
-        do {
-            recipe = try await APIClient.shared.fetchRecipe(id: recipeID)
-            loadState = .loaded
-            await pollWhileExtracting()
-        } catch {
-            loadState = .failed(error.localizedDescription)
-        }
-    }
-
-    private func pollWhileExtracting() async {
-        while !Task.isCancelled, isExtracting(recipe?.extractionStatus) {
-            do {
-                try await Task.sleep(for: .seconds(2))
-            } catch {
-                return
-            }
-            if Task.isCancelled { return }
-            do {
-                recipe = try await APIClient.shared.fetchRecipe(id: recipeID)
-            } catch {
-                // Transient errors during polling shouldn't tear down the view —
-                // keep the last known state and try again next tick.
-            }
-        }
-    }
-
-    private func isExtracting(_ status: ExtractionStatus?) -> Bool {
-        status == .pending || status == .processing
-    }
-
-    private func retry() async {
-        isRetrying = true
-        retryError = nil
-        do {
-            recipe = try await APIClient.shared.retryExtraction(recipeID: recipeID)
-            await pollWhileExtracting()
-        } catch {
-            retryError = error.localizedDescription
-        }
-        isRetrying = false
     }
 }
 

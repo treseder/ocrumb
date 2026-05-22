@@ -1,7 +1,13 @@
 import Foundation
 import Security
 
-final class KeychainStore {
+/// Abstraction over token persistence so `SessionStore` can be tested
+/// against an in-memory fake instead of the real system Keychain.
+protocol TokenStore: AnyObject {
+    var token: String? { get set }
+}
+
+final class KeychainStore: TokenStore {
     static let shared = KeychainStore()
 
     private let service = "com.plumcode.ocrumb"

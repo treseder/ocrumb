@@ -12,9 +12,9 @@ final class SessionStore {
     var state: State = .loading
 
     private let api: APIClient
-    private let keychain: KeychainStore
+    private let keychain: any TokenStore
 
-    init(api: APIClient = .shared, keychain: KeychainStore = .shared) {
+    init(api: APIClient = .shared, keychain: any TokenStore = KeychainStore.shared) {
         self.api = api
         self.keychain = keychain
     }

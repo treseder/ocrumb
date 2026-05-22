@@ -6,9 +6,7 @@ struct AddRecipeView: View {
 
     @Environment(\.dismiss) private var dismiss
     @State private var selectedItem: PhotosPickerItem?
-    @State private var imageData: Data?
-    @State private var isUploading = false
-    @State private var error: String?
+    @State private var model = AddRecipeViewModel()
 
     var body: some View {
         NavigationStack {
@@ -16,12 +14,12 @@ struct AddRecipeView: View {
                 preview
 
                 PhotosPicker(selection: $selectedItem, matching: .images) {
-                    Label(imageData == nil ? "Choose Photo" : "Change Photo",
+                    Label(model.imageData == nil ? "Choose Photo" : "Change Photo",
                           systemImage: "photo.on.rectangle.angled")
                 }
                 .buttonStyle(.bordered)
 
-                if let error {
+                if let error = model.error {
                     Text(error)
                         .font(.footnote)
                         .foregroundStyle(.red)
@@ -32,9 +30,14 @@ struct AddRecipeView: View {
                 Spacer()
 
                 Button {
-                    Task { await upload() }
+                    Task {
+                        if let recipe = await model.upload() {
+                            onCreated(recipe)
+                            dismiss()
+                        }
+                    }
                 } label: {
-                    if isUploading {
+                    if model.isUploading {
                         ProgressView()
                     } else {
                         Text("Extract Recipe").bold()
@@ -43,7 +46,7 @@ struct AddRecipeView: View {
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
                 .frame(maxWidth: .infinity)
-                .disabled(imageData == nil || isUploading)
+                .disabled(!model.canUpload)
             }
             .padding()
             .navigationTitle("New Recipe")
@@ -51,19 +54,19 @@ struct AddRecipeView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
-                        .disabled(isUploading)
+                        .disabled(model.isUploading)
                 }
             }
-            .interactiveDismissDisabled(isUploading)
+            .interactiveDismissDisabled(model.isUploading)
             .onChange(of: selectedItem) { _, newItem in
-                Task { await loadImage(from: newItem) }
+                Task { await model.loadImage(from: newItem) }
             }
         }
     }
 
     @ViewBuilder
     private var preview: some View {
-        if let imageData, let uiImage = UIImage(data: imageData) {
+        if let imageData = model.imageData, let uiImage = UIImage(data: imageData) {
             Image(uiImage: uiImage)
                 .resizable()
                 .scaledToFit()
@@ -84,39 +87,5 @@ struct AddRecipeView: View {
                     }
                 }
         }
-    }
-
-    private func loadImage(from item: PhotosPickerItem?) async {
-        guard let item else { return }
-        do {
-            guard let data = try await item.loadTransferable(type: Data.self),
-                  let uiImage = UIImage(data: data),
-                  let jpeg = uiImage.jpegData(compressionQuality: 0.85) else {
-                error = "Couldn't read that photo."
-                return
-            }
-            imageData = jpeg
-            error = nil
-        } catch {
-            self.error = "Couldn't load photo: \(error.localizedDescription)"
-        }
-    }
-
-    private func upload() async {
-        guard let imageData else { return }
-        isUploading = true
-        error = nil
-        do {
-            let recipe = try await APIClient.shared.createRecipe(
-                imageData: imageData,
-                filename: "recipe.jpg",
-                mimeType: "image/jpeg"
-            )
-            onCreated(recipe)
-            dismiss()
-        } catch {
-            self.error = error.localizedDescription
-        }
-        isUploading = false
     }
 }

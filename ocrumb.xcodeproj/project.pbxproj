@@ -6,8 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		94A87DF0039B8D120B61B9E1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6AB5AF172F8DF2C000C571E7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6AB5AF1E2F8DF2C000C571E7;
+			remoteInfo = ocrumb;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		6AB5AF1F2F8DF2C000C571E7 /* ocrumb.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ocrumb.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B3A9AFBBBF22429F6CC493DB /* ocrumbTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ocrumbTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,9 +27,21 @@
 			path = ocrumb;
 			sourceTree = "<group>";
 		};
+		809A35F8D82ED66F128EFFA2 /* ocrumbTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ocrumbTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		1CC59FFFECB2305A00B029B9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6AB5AF1C2F8DF2C000C571E7 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -33,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				6AB5AF212F8DF2C000C571E7 /* ocrumb */,
+				809A35F8D82ED66F128EFFA2 /* ocrumbTests */,
 				6AB5AF202F8DF2C000C571E7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				6AB5AF1F2F8DF2C000C571E7 /* ocrumb.app */,
+				B3A9AFBBBF22429F6CC493DB /* ocrumbTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,6 +73,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		606FD53E26329D3463746DD4 /* ocrumbTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1B41549173C544BECE7BB93 /* Build configuration list for PBXNativeTarget "ocrumbTests" */;
+			buildPhases = (
+				26CBF069F272A21177A96476 /* Sources */,
+				1CC59FFFECB2305A00B029B9 /* Frameworks */,
+				F75640EEEE622C4E354F7484 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DA0EEEE9188AF4FA0F5AA812 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				809A35F8D82ED66F128EFFA2 /* ocrumbTests */,
+			);
+			name = ocrumbTests;
+			packageProductDependencies = (
+			);
+			productName = ocrumbTests;
+			productReference = B3A9AFBBBF22429F6CC493DB /* ocrumbTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		6AB5AF1E2F8DF2C000C571E7 /* ocrumb */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 6AB5AF2A2F8DF2C400C571E7 /* Build configuration list for PBXNativeTarget "ocrumb" */;
@@ -80,6 +128,10 @@
 				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
+					606FD53E26329D3463746DD4 = {
+						CreatedOnToolsVersion = 26.4;
+						TestTargetID = 6AB5AF1E2F8DF2C000C571E7;
+					};
 					6AB5AF1E2F8DF2C000C571E7 = {
 						CreatedOnToolsVersion = 26.4;
 					};
@@ -100,6 +152,7 @@
 			projectRoot = "";
 			targets = (
 				6AB5AF1E2F8DF2C000C571E7 /* ocrumb */,
+				606FD53E26329D3463746DD4 /* ocrumbTests */,
 			);
 		};
 /* End PBXProject section */
@@ -112,9 +165,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F75640EEEE622C4E354F7484 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		26CBF069F272A21177A96476 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6AB5AF1B2F8DF2C000C571E7 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -123,6 +190,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DA0EEEE9188AF4FA0F5AA812 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6AB5AF1E2F8DF2C000C571E7 /* ocrumb */;
+			targetProxy = 94A87DF0039B8D120B61B9E1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		6AB5AF282F8DF2C400C571E7 /* Debug */ = {
@@ -310,6 +385,46 @@
 			};
 			name = Release;
 		};
+		813B7F504D742AEEA7B83F2E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MDM5JQPLE4;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.plumcode.ocrumbTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ocrumb.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ocrumb";
+			};
+			name = Release;
+		};
+		E23AB5261504EC4317A02BC4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MDM5JQPLE4;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.plumcode.ocrumbTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ocrumb.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ocrumb";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -327,6 +442,15 @@
 			buildConfigurations = (
 				6AB5AF2B2F8DF2C400C571E7 /* Debug */,
 				6AB5AF2C2F8DF2C400C571E7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A1B41549173C544BECE7BB93 /* Build configuration list for PBXNativeTarget "ocrumbTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E23AB5261504EC4317A02BC4 /* Debug */,
+				813B7F504D742AEEA7B83F2E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
