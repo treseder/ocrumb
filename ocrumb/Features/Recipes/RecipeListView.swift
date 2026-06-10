@@ -16,6 +16,7 @@ struct RecipeListView: View {
     var body: some View {
         NavigationStack(path: $path) {
             content
+                .background(Theme.Colors.background)
                 .navigationTitle("Recipes")
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
@@ -28,6 +29,7 @@ struct RecipeListView: View {
                             showingAdd = true
                         } label: {
                             Image(systemName: "plus")
+                                .font(.headline)
                         }
                     }
                 }
@@ -59,21 +61,36 @@ struct RecipeListView: View {
                     Text(message)
                 } actions: {
                     Button("Try Again") { Task { await model.load() } }
+                        .buttonStyle(.borderedProminent)
                 }
             case .loaded:
                 ContentUnavailableView {
                     Label("No recipes yet", systemImage: "book.pages")
                 } description: {
                     Text("Tap + to extract a recipe from a photo.")
+                } actions: {
+                    Button {
+                        showingAdd = true
+                    } label: {
+                        Text("Add a Recipe")
+                            .padding(.horizontal, Theme.Spacing.xs)
+                    }
+                    .buttonStyle(.borderedProminent)
                 }
             }
         } else {
-            List(model.recipes) { recipe in
-                NavigationLink(value: RecipeRoute(id: recipe.id, title: recipe.title)) {
-                    RecipeRow(recipe: recipe)
+            ScrollView {
+                LazyVStack(spacing: Theme.Spacing.sm) {
+                    ForEach(model.recipes) { recipe in
+                        NavigationLink(value: RecipeRoute(id: recipe.id, title: recipe.title)) {
+                            RecipeRow(recipe: recipe)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
+                .padding(.horizontal, Theme.Spacing.md)
+                .padding(.vertical, Theme.Spacing.sm)
             }
-            .listStyle(.plain)
         }
     }
 }
@@ -82,55 +99,54 @@ private struct RecipeRow: View {
     let recipe: RecipeSummary
 
     var body: some View {
-        HStack(spacing: 12) {
-            thumbnail
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(spacing: Theme.Spacing.sm) {
+            RecipeImage(url: recipe.imageURL)
+                .frame(width: 72, height: 72)
+                .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
+
+            VStack(alignment: .leading, spacing: Theme.Spacing.xxs) {
                 Text(recipe.title ?? "Untitled")
-                    .font(.headline)
+                    .font(Theme.Typography.rowTitle)
+                    .foregroundStyle(Theme.Colors.primaryText)
                     .lineLimit(2)
-                if let description = recipe.description, !description.isEmpty {
-                    Text(description)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                }
+
+                subtitle
+
                 if !recipe.tags.isEmpty {
-                    Text(recipe.tags.joined(separator: " • "))
+                    Text(recipe.tags.prefix(3).joined(separator: " · "))
                         .font(.caption)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(Theme.Colors.tertiaryText)
+                        .lineLimit(1)
                 }
             }
+
+            Spacer(minLength: 0)
+
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(Theme.Colors.tertiaryText)
         }
-        .padding(.vertical, 4)
+        .card()
     }
 
     @ViewBuilder
-    private var thumbnail: some View {
-        if let url = recipe.imageURL {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .success(let image):
-                    image.resizable().aspectRatio(contentMode: .fill)
-                case .failure:
-                    placeholder
-                default:
-                    Color(.systemGray5)
-                }
+    private var subtitle: some View {
+        switch recipe.extractionStatus {
+        case .pending, .processing:
+            Label("Extracting…", systemImage: "sparkles")
+                .font(.subheadline)
+                .foregroundStyle(Theme.Colors.accent)
+        case .failed:
+            Label("Extraction failed", systemImage: "exclamationmark.triangle.fill")
+                .font(.subheadline)
+                .foregroundStyle(Theme.Colors.danger)
+        case .completed, .none:
+            if let description = recipe.description, !description.isEmpty {
+                Text(description)
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.Colors.secondaryText)
+                    .lineLimit(2)
             }
-            .frame(width: 64, height: 64)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-        } else {
-            placeholder
         }
-    }
-
-    private var placeholder: some View {
-        RoundedRectangle(cornerRadius: 8)
-            .fill(Color(.systemGray5))
-            .frame(width: 64, height: 64)
-            .overlay {
-                Image(systemName: "book.pages")
-                    .foregroundStyle(.secondary)
-            }
     }
 }

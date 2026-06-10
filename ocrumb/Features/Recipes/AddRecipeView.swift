@@ -10,19 +10,19 @@ struct AddRecipeView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
+            VStack(spacing: Theme.Spacing.lg) {
                 preview
 
                 PhotosPicker(selection: $selectedItem, matching: .images) {
                     Label(model.imageData == nil ? "Choose Photo" : "Change Photo",
                           systemImage: "photo.on.rectangle.angled")
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.secondary)
 
                 if let error = model.error {
                     Text(error)
                         .font(.footnote)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Theme.Colors.danger)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
                 }
@@ -38,17 +38,16 @@ struct AddRecipeView: View {
                     }
                 } label: {
                     if model.isUploading {
-                        ProgressView()
+                        ProgressView().tint(.white)
                     } else {
-                        Text("Extract Recipe").bold()
+                        Text("Extract Recipe")
                     }
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .frame(maxWidth: .infinity)
+                .buttonStyle(.primary)
                 .disabled(!model.canUpload)
             }
-            .padding()
+            .padding(Theme.Spacing.md)
+            .background(Theme.Colors.background)
             .navigationTitle("New Recipe")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -70,22 +69,29 @@ struct AddRecipeView: View {
             Image(uiImage: uiImage)
                 .resizable()
                 .scaledToFit()
-                .frame(maxHeight: 320)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .frame(maxWidth: .infinity, maxHeight: 360)
+                .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous))
         } else {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemGray6))
-                .frame(maxHeight: 320)
+            RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous)
+                .fill(Theme.Colors.fill)
+                .frame(maxHeight: 360)
                 .overlay {
-                    VStack(spacing: 8) {
-                        Image(systemName: "photo")
+                    VStack(spacing: Theme.Spacing.sm) {
+                        Image(systemName: "photo.badge.plus")
                             .font(.system(size: 48))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Theme.Colors.accent)
                         Text("Choose a recipe photo to extract")
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Theme.Colors.secondaryText)
                     }
                 }
+                .overlay(
+                    RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous)
+                        .strokeBorder(
+                            Theme.Colors.separator.opacity(0.6),
+                            style: StrokeStyle(lineWidth: 1, dash: [6, 4])
+                        )
+                )
         }
     }
 }
