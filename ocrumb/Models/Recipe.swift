@@ -33,6 +33,7 @@ nonisolated struct Recipe: Codable, Hashable, Identifiable, Sendable {
     let description: String?
     let servings: String?
     let source: String?
+    let sourceUrl: String?
     let prepTimeMinutes: Int?
     let cookTimeMinutes: Int?
     let totalTimeMinutes: Int?
@@ -52,6 +53,7 @@ nonisolated struct Recipe: Codable, Hashable, Identifiable, Sendable {
         case description
         case servings
         case source
+        case sourceUrl = "source_url"
         case prepTimeMinutes = "prep_time_minutes"
         case cookTimeMinutes = "cook_time_minutes"
         case totalTimeMinutes = "total_time_minutes"

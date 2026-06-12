@@ -78,6 +78,11 @@ actor APIClient {
         return try await sendMultipart(.post, "/api/v1/recipes", parts: [part])
     }
 
+    func createRecipe(sourceURL: String) async throws -> Recipe {
+        let body = ["source_url": sourceURL]
+        return try await send(.post, "/api/v1/recipes", body: body)
+    }
+
     func retryExtraction(recipeID: Int) async throws -> Recipe {
         try await send(.post, "/api/v1/recipes/\(recipeID)/retry_extraction")
     }
