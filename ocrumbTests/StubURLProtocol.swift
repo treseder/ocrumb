@@ -14,6 +14,7 @@ final class StubURLProtocol: URLProtocol {
 
     nonisolated(unsafe) private static var _queue: [Stub] = []
     nonisolated(unsafe) private static var _lastRequest: URLRequest?
+    nonisolated(unsafe) private static var _lastRequestBody: Data?
     private static let lock = NSLock()
 
     /// Builds a session whose only protocol is the stub.
@@ -27,6 +28,7 @@ final class StubURLProtocol: URLProtocol {
         lock.lock(); defer { lock.unlock() }
         _queue = [stub]
         _lastRequest = nil
+        _lastRequestBody = nil
     }
 
     /// Convenience for a single JSON body + status code.
@@ -39,6 +41,7 @@ final class StubURLProtocol: URLProtocol {
         lock.lock(); defer { lock.unlock() }
         _queue = responses.map { Stub(statusCode: $0.status, data: Data($0.json.utf8)) }
         _lastRequest = nil
+        _lastRequestBody = nil
     }
 
     nonisolated static var lastRequest: URLRequest? {
@@ -46,10 +49,18 @@ final class StubURLProtocol: URLProtocol {
         return _lastRequest
     }
 
+    /// `URLSession` hands protocols the body as a stream, so `lastRequest`'s
+    /// `httpBody` is always nil — this captures the drained stream instead.
+    nonisolated static var lastRequestBody: Data? {
+        lock.lock(); defer { lock.unlock() }
+        return _lastRequestBody
+    }
+
     nonisolated static func reset() {
         lock.lock(); defer { lock.unlock() }
         _queue = []
         _lastRequest = nil
+        _lastRequestBody = nil
     }
 
     nonisolated override class func canInit(with request: URLRequest) -> Bool { true }
@@ -57,8 +68,10 @@ final class StubURLProtocol: URLProtocol {
     nonisolated override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
     nonisolated override func startLoading() {
+        let body = Self.readBody(of: request)
         StubURLProtocol.lock.lock()
         StubURLProtocol._lastRequest = request
+        StubURLProtocol._lastRequestBody = body
         let stub: Stub?
         if StubURLProtocol._queue.count > 1 {
             stub = StubURLProtocol._queue.removeFirst()
@@ -83,4 +96,19 @@ final class StubURLProtocol: URLProtocol {
     }
 
     nonisolated override func stopLoading() {}
+
+    nonisolated private static func readBody(of request: URLRequest) -> Data? {
+        if let body = request.httpBody { return body }
+        guard let stream = request.httpBodyStream else { return nil }
+        stream.open()
+        defer { stream.close() }
+        var data = Data()
+        var buffer = [UInt8](repeating: 0, count: 16 * 1024)
+        while stream.hasBytesAvailable {
+            let read = stream.read(&buffer, maxLength: buffer.count)
+            guard read > 0 else { break }
+            data.append(buffer, count: read)
+        }
+        return data
+    }
 }

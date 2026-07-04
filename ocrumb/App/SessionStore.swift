@@ -56,6 +56,15 @@ final class SessionStore {
         state = .signedOut
     }
 
+    /// Throws without changing state if deletion fails (e.g. wrong password),
+    /// so the caller can surface the error and let the user retry.
+    func deleteAccount(password: String) async throws {
+        try await api.deleteAccount(password: password)
+        keychain.token = nil
+        await api.setToken(nil)
+        state = .signedOut
+    }
+
     private func applySuccess(_ result: AuthResponse) async {
         keychain.token = result.token
         await api.setToken(result.token)

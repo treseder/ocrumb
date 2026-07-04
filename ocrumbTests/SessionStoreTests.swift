@@ -62,6 +62,35 @@ extension StubbedNetworkTests {
             #expect(keychain.token == "test-token-123")
         }
 
+        @Test func deleteAccountClearsTokenAndSignsOut() async throws {
+            let (session, keychain) = makeStore(token: "stored-token")
+            StubURLProtocol.setResponse(status: 200, json: Fixtures.user)
+            await session.bootstrap()
+            StubURLProtocol.setResponse(status: 204, json: "")
+
+            try await session.deleteAccount(password: "hunter2")
+
+            #expect(isSignedOut(session.state))
+            #expect(keychain.token == nil)
+        }
+
+        @Test func deleteAccountWithWrongPasswordKeepsSession() async {
+            let (session, keychain) = makeStore(token: "stored-token")
+            StubURLProtocol.setResponse(status: 200, json: Fixtures.user)
+            await session.bootstrap()
+            StubURLProtocol.setResponse(status: 403, json: #"{"error": "Incorrect password"}"#)
+
+            do {
+                try await session.deleteAccount(password: "wrong")
+                Issue.record("expected deleteAccount to throw")
+            } catch {
+                // expected — state and token must be untouched
+            }
+
+            #expect(signedInUser(session.state) != nil)
+            #expect(keychain.token == "stored-token")
+        }
+
         @Test func signOutClearsTokenAndSignsOut() async {
             let (session, keychain) = makeStore(token: "stored-token")
             StubURLProtocol.setResponse(status: 200, json: "")

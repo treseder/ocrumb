@@ -91,6 +91,36 @@ struct StubbedNetworkTests {
             }
         }
 
+        @Test func deleteAccountSendsDeleteWithPasswordBody() async throws {
+            let client = makeClient()
+            await client.setToken("secret-token")
+            StubURLProtocol.setResponse(status: 204, json: "")
+
+            try await client.deleteAccount(password: "hunter2")
+
+            let request = StubURLProtocol.lastRequest
+            #expect(request?.httpMethod == "DELETE")
+            #expect(request?.url?.path == "/api/v1/account")
+            #expect(request?.value(forHTTPHeaderField: "Authorization") == "Bearer secret-token")
+            let body = StubURLProtocol.lastRequestBody.flatMap {
+                try? JSONDecoder().decode([String: String].self, from: $0)
+            }
+            #expect(body == ["password": "hunter2"])
+        }
+
+        @Test func deleteAccountWrongPasswordMapsToServerError() async {
+            StubURLProtocol.setResponse(status: 403, json: #"{"error": "Incorrect password"}"#)
+            do {
+                try await makeClient().deleteAccount(password: "wrong")
+                Issue.record("expected deleteAccount to throw")
+            } catch APIError.server(let status, let message) {
+                #expect(status == 403)
+                #expect(message == "Incorrect password")
+            } catch {
+                Issue.record("expected .server, got \(error)")
+            }
+        }
+
         @Test func authorizedRequestSendsBearerHeader() async throws {
             let client = makeClient()
             await client.setToken("secret-token")

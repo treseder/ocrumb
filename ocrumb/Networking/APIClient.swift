@@ -63,6 +63,10 @@ actor APIClient {
         try await send(.get, "/api/v1/account")
     }
 
+    func deleteAccount(password: String) async throws {
+        try await sendNoContent(.delete, "/api/v1/account", body: ["password": password])
+    }
+
     // MARK: Recipes
 
     func fetchRecipes() async throws -> [RecipeSummary] {
@@ -137,6 +141,23 @@ actor APIClient {
 
     private func sendNoContent(_ method: Method, _ path: String, authorized: Bool = true) async throws {
         let request = try buildRequest(method, path, authorized: authorized)
+        let (data, response) = try await transport(request: request)
+        try validate(response: response, data: data)
+    }
+
+    private func sendNoContent<Body: Encodable>(
+        _ method: Method,
+        _ path: String,
+        body: Body,
+        authorized: Bool = true
+    ) async throws {
+        var request = try buildRequest(method, path, authorized: authorized)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        do {
+            request.httpBody = try encoder.encode(body)
+        } catch {
+            throw APIError.decoding(String(describing: error))
+        }
         let (data, response) = try await transport(request: request)
         try validate(response: response, data: data)
     }

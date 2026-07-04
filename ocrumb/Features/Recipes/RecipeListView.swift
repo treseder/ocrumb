@@ -12,6 +12,7 @@ struct RecipeListView: View {
     @State private var model = RecipeListViewModel()
     @State private var path: [RecipeRoute] = []
     @State private var showingAdd = false
+    @State private var showingSettings = false
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -20,9 +21,12 @@ struct RecipeListView: View {
                 .navigationTitle("Recipes")
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
-                        Button("Sign Out") {
-                            Task { await session.signOut() }
+                        Button {
+                            showingSettings = true
+                        } label: {
+                            Image(systemName: "gearshape")
                         }
+                        .accessibilityLabel("Settings")
                     }
                     ToolbarItem(placement: .topBarTrailing) {
                         Button {
@@ -43,6 +47,9 @@ struct RecipeListView: View {
                         path.append(RecipeRoute(id: recipe.id, title: recipe.title))
                         Task { await model.load() }
                     }
+                }
+                .sheet(isPresented: $showingSettings) {
+                    SettingsView(user: user)
                 }
         }
     }
